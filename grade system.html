@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grade Record System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        /* Modern CSS Reset & Box Normalization */
+        *, ::before, ::after {
+            box-sizing: border-box;
+        }
+
+        /* Enhanced Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .print-area {
+                width: 100% !important;
+                max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            table th, table td {
+                color: #000000 !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 6px 8px !important;
+                font-size: 11px !important;
+            }
+            .page-break {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-3 sm:p-6 lg:p-8 font-sans transition-colors duration-300">
+
+    <!-- Auth Container (Login / Signup) -->
+    <div id="authContainer" class="w-full max-w-sm sm:max-w-md mx-auto my-8 sm:my-12 bg-white dark:bg-slate-800 p-5 sm:p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
+        
+        <!-- Auth Tabs -->
+        <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+            <button id="tabLogin" onclick="switchAuthTab('login')" class="w-1/2 py-2 font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400">Login</button>
+            <button id="tabSignup" onclick="switchAuthTab('signup')" class="w-1/2 py-2 font-bold text-sm sm:text-base text-slate-400 hover:text-slate-600 dark:hover:text-white">Sign Up</button>
+        </div>
+
+        <p id="authError" class="text-rose-500 text-sm mb-4 text-center hidden"></p>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Username</label>
+                <input type="text" id="loginUser" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Password</label>
+                <input type="password" id="loginPass" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all text-sm sm:text-base">Login</button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" class="space-y-4 hidden">
+            <div>
+                <label class="block text-sm font-medium mb-1">New Username</label>
+                <input type="text" id="signupUser" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">New Password</label>
+                <input type="password" id="signupPass" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all text-sm sm:text-base">Sign Up</button>
+        </form>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="appContainer" class="max-w-7xl mx-auto space-y-6 sm:space-y-8 hidden">
+        
+        <!-- Header Section -->
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-slate-200 dark:border-slate-700 pb-4 sm:pb-6">
+            <div>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-600 dark:text-blue-400">
+                    Student Grade Record System
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Enter student information and evaluate grades automatically.</p>
+            </div>
+            <div class="flex items-center justify-between sm:justify-end space-x-3 no-print">
+                <!-- Theme Switcher Button -->
+                <button onclick="toggleTheme()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 px-3 py-2 sm:px-3.5 sm:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs sm:text-sm transition-all" title="Toggle Light/Dark Theme">
+                    <span id="themeIcon">☀️ Light</span>
+                </button>
+                <span id="currentUserDisplay" class="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 truncate max-w-[120px] sm:max-w-none"></span>
+                <button onclick="handleLogout()" class="bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white dark:bg-rose-600/20 dark:hover:bg-rose-600 dark:text-rose-400 dark:hover:text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg border border-rose-500/30 text-xs sm:text-sm transition-all">Logout</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
+            
+            <!-- Registration Form Section -->
+            <div class="md:col-span-5 lg:col-span-4 bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 h-fit no-print">
+                <h2 class="text-lg sm:text-xl font-bold mb-4 text-emerald-600 dark:text-emerald-400 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    ➕ Register New Student
+                </h2>
+
+                <form id="studentForm" class="space-y-4">
+                    <!-- Student ID Field -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1">Student ID</label>
+                        <input type="text" id="studentId" placeholder="e.g. WDU123456" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <p id="errStudentId" class="text-rose-500 text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1">First Name </label>
+                        <input type="text" id="firstName" placeholder="e.g. Beshah" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <p id="errFirstName" class="text-rose-500 text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1">Father Name </label>
+                        <input type="text" id="fatherName" placeholder="e.g. Tadesse" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <p id="errFatherName" class="text-rose-500 text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1">Gender</label>
+                        <select id="gender" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="M">Male (M)</option>
+                            <option value="F">Female (F)</option>
+                        </select>
+                    </div>
+
+                    <!-- Responsive Grid for Marks Input -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Mid (20%)</label>
+                            <input type="number" id="mid" placeholder="0-20" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Assign (30%)</label>
+                            <input type="number" id="assignment" placeholder="0-30" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Final (50%)</label>
+                            <input type="number" id="finalExam" placeholder="0-50" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                    
+                    <div id="scoresErrorContainer" class="space-y-1 hidden">
+                        <p id="errMid" class="text-rose-500 text-xs hidden"></p>
+                        <p id="errAssignment" class="text-rose-500 text-xs hidden"></p>
+                        <p id="errFinal" class="text-rose-500 text-xs hidden"></p>
+                    </div>
+
+                    <p id="errDuplicate" class="text-rose-500 text-xs font-bold hidden"></p>
+
+                    <button type="submit" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-emerald-900/40 text-sm sm:text-base">
+                        Save Student Record
+                    </button>
+                </form>
+            </div>
+
+            <!-- Display Table Section -->
+            <div class="md:col-span-7 lg:col-span-8 space-y-4 print-area">
+                
+                <!-- Stats & Actions Bar -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Total Registered</p>
+                        <p id="studentCountText" class="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">0 Students</p>
+                    </div>
+                    <button onclick="window.print()" class="no-print bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5">
+                        <span>🖨️</span> <span class="hidden sm:inline">Print / Export PDF</span><span class="sm:hidden">Print</span>
+                    </button>
+                </div>
+
+                <!-- Table Container with Smooth Horizontal Scrolling -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="overflow-x-auto min-w-full">
+                        <table class="w-full text-left border-collapse min-w-[640px] sm:min-w-0">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">No.</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Student ID</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Full Name</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Gender</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Mid</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Assign</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Final</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Total</th>
+                                    <th class="p-3 sm:p-4 whitespace-nowrap">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody" class="divide-y divide-slate-200 dark:divide-slate-700/50 text-xs sm:text-sm">
+                                <tr>
+                                    <td colSpan="9" class="text-center p-8 text-slate-400">
+                                        No student records found.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const users = [];
+        let loggedInUser = null;
+        const students = [];
+
+        // Theme Toggle Function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById("themeIcon");
+            if (html.classList.contains("dark")) {
+                html.classList.remove("dark");
+                themeIcon.innerText = "🌙 Dark";
+            } else {
+                html.classList.add("dark");
+                themeIcon.innerText = "☀️ Light";
+            }
+        }
+
+        // Capitalize Function
+        function capitalize(str) {
+            if (!str) return '';
+            return str.trim().charAt(0).toUpperCase() + str.trim().slice(1).toLowerCase();
+        }
+
+        // Authentication Logic
+        function switchAuthTab(type) {
+            const err = document.getElementById("authError");
+            err.classList.add("hidden");
+            if (type === 'login') {
+                document.getElementById("loginForm").classList.remove("hidden");
+                document.getElementById("signupForm").classList.add("hidden");
+                document.getElementById("tabLogin").className = "w-1/2 py-2 font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400";
+                document.getElementById("tabSignup").className = "w-1/2 py-2 font-bold text-sm sm:text-base text-slate-400 hover:text-slate-600 dark:hover:text-white";
+            } else {
+                document.getElementById("loginForm").classList.add("hidden");
+                document.getElementById("signupForm").classList.remove("hidden");
+                document.getElementById("tabSignup").className = "w-1/2 py-2 font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600 dark:border-emerald-400";
+                document.getElementById("tabLogin").className = "w-1/2 py-2 font-bold text-sm sm:text-base text-slate-400 hover:text-slate-600 dark:hover:text-white";
+            }
+        }
+
+        document.getElementById("signupForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const u = document.getElementById("signupUser").value.trim();
+            const p = document.getElementById("signupPass").value.trim();
+            const err = document.getElementById("authError");
+
+            if (users.find(user => user.username === u)) {
+                err.innerText = "This username is already taken!";
+                err.classList.remove("hidden");
+                return;
+            }
+
+            users.push({ username: u, password: p });
+            alert("Account created successfully! Please login.");
+            this.reset();
+            switchAuthTab('login');
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const u = document.getElementById("loginUser").value.trim();
+            const p = document.getElementById("loginPass").value.trim();
+            const err = document.getElementById("authError");
+
+            const found = users.find(user => user.username === u && user.password === p);
+            if (!found) {
+                err.innerText = "Invalid username or password!";
+                err.classList.remove("hidden");
+                return;
+            }
+
+            loggedInUser = u;
+            document.getElementById("authContainer").classList.add("hidden");
+            document.getElementById("appContainer").classList.remove("hidden");
+            document.getElementById("currentUserDisplay").innerText = `👤 ${capitalize(u)}`;
+            this.reset();
+        });
+
+        function handleLogout() {
+            loggedInUser = null;
+            document.getElementById("appContainer").classList.add("hidden");
+            document.getElementById("authContainer").classList.remove("hidden");
+        }
+
+        // Student Calculation and Validation
+        function calculateGrade(total) {
+            if (total >= 90) return "A+";
+            if (total >= 85) return "A";
+            if (total >= 80) return "A-";
+            if (total >= 75) return "B+";
+            if (total >= 70) return "B";
+            if (total >= 65) return "B-";
+            if (total >= 60) return "C+";
+            if (total >= 50) return "C";
+            return "F";
+        }
+
+        function getGradeBadgeClass(grade) {
+            if (grade.startsWith("A")) return "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400";
+            if (grade.startsWith("B")) return "bg-blue-500/20 text-blue-600 dark:text-blue-400";
+            if (grade.startsWith("C")) return "bg-amber-500/20 text-amber-600 dark:text-amber-400";
+            return "bg-rose-500/20 text-rose-600 dark:text-rose-400";
+        }
+
+        function clearErrors() {
+            document.getElementById("errStudentId").classList.add("hidden");
+            document.getElementById("errFirstName").classList.add("hidden");
+            document.getElementById("errFatherName").classList.add("hidden");
+            document.getElementById("errMid").classList.add("hidden");
+            document.getElementById("errAssignment").classList.add("hidden");
+            document.getElementById("errFinal").classList.add("hidden");
+            document.getElementById("errDuplicate").classList.add("hidden");
+            document.getElementById("scoresErrorContainer").classList.add("hidden");
+        }
+
+        function validate(studentId, firstName, fatherName, midVal, assignVal, finalVal) {
+            clearErrors();
+            let isValid = true;
+            const letterRegex = /^[A-Za-z]+$/;
+
+            if (!studentId.trim()) {
+                const err = document.getElementById("errStudentId");
+                err.innerText = "Student ID is required!";
+                err.classList.remove("hidden");
+                isValid = false;
+            }
+
+            if (!firstName || !letterRegex.test(firstName)) {
+                const err = document.getElementById("errFirstName");
+                err.innerText = "First name must contain letters only!";
+                err.classList.remove("hidden");
+                isValid = false;
+            }
+
+            if (!fatherName || !letterRegex.test(fatherName)) {
+                const err = document.getElementById("errFatherName");
+                err.innerText = "Father's name must contain letters only!";
+                err.classList.remove("hidden");
+                isValid = false;
+            }
+
+            // Duplicate Student ID or Name Check
+            const idExists = students.some(s => s.studentId.toLowerCase() === studentId.toLowerCase());
+            const nameExists = students.some(
+                s => s.firstName.toLowerCase() === firstName.toLowerCase() && 
+                     s.fatherName.toLowerCase() === fatherName.toLowerCase()
+            );
+
+            if (idExists) {
+                const err = document.getElementById("errDuplicate");
+                err.innerText = "A student with this ID already exists!";
+                err.classList.remove("hidden");
+                isValid = false;
+            } else if (nameExists) {
+                const err = document.getElementById("errDuplicate");
+                err.innerText = "This student record already exists!";
+                err.classList.remove("hidden");
+                isValid = false;
+            }
+
+            const mid = parseFloat(midVal);
+            if (isNaN(mid) || mid < 0 || mid > 20) {
+                const err = document.getElementById("errMid");
+                err.innerText = "Mid score must be between 0 and 20!";
+                err.classList.remove("hidden");
+                document.getElementById("scoresErrorContainer").classList.remove("hidden");
+                isValid = false;
+            }
+
+            const assignment = parseFloat(assignVal);
+            if (isNaN(assignment) || assignment < 0 || assignment > 30) {
+                const err = document.getElementById("errAssignment");
+                err.innerText = "Assignment score must be between 0 and 30!";
+                err.classList.remove("hidden");
+                document.getElementById("scoresErrorContainer").classList.remove("hidden");
+                isValid = false;
+            }
+
+            const finalExam = parseFloat(finalVal);
+            if (isNaN(finalExam) || finalExam < 0 || finalExam > 50) {
+                const err = document.getElementById("errFinal");
+                err.innerText = "Final exam score must be between 0 and 50!";
+                err.classList.remove("hidden");
+                document.getElementById("scoresErrorContainer").classList.remove("hidden");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function renderStudents() {
+            const tbody = document.getElementById("studentTableBody");
+            const countText = document.getElementById("studentCountText");
+
+            countText.innerText = `${students.length} Students`;
+
+            if (students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colSpan="9" class="text-center p-8 text-slate-400">
+                            No student records found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = students.map((student, index) => `
+                <tr class="hover:bg-slate-200 dark:hover:bg-slate-900 transition-colors border-b border-slate-200 dark:border-slate-700/50">
+                    <td class="p-3 sm:p-4 font-mono text-slate-400 whitespace-nowrap">${index + 1}</td>
+                    <td class="p-3 sm:p-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">${student.studentId}</td>
+                    <td class="p-3 sm:p-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">${student.firstName} ${student.fatherName}</td>
+                    <td class="p-3 sm:p-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${
+                            student.gender === 'M' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'
+                        }">
+                            ${student.gender}
+                        </span>
+                    </td>
+                    <td class="p-3 sm:p-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">${student.mid}</td>
+                    <td class="p-3 sm:p-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">${student.assignment}</td>
+                    <td class="p-3 sm:p-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">${student.finalExam}</td>
+                    <td class="p-3 sm:p-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">${student.total}</td>
+                    <td class="p-3 sm:p-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-extrabold ${getGradeBadgeClass(student.grade)}">
+                            ${student.grade}
+                        </span>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        document.getElementById("studentForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const studentId = document.getElementById("studentId").value.trim().toUpperCase();
+            const rawFirstName = document.getElementById("firstName").value.trim();
+            const rawFatherName = document.getElementById("fatherName").value.trim();
+            const gender = document.getElementById("gender").value;
+            const midVal = document.getElementById("mid").value;
+            const assignVal = document.getElementById("assignment").value;
+            const finalVal = document.getElementById("finalExam").value;
+
+            if (!validate(studentId, rawFirstName, rawFatherName, midVal, assignVal, finalVal)) {
+                return;
+            }
+
+            // Apply Capitalization
+            const firstName = capitalize(rawFirstName);
+            const fatherName = capitalize(rawFatherName);
+
+            const mid = parseFloat(midVal);
+            const assignment = parseFloat(assignVal);
+            const finalExam = parseFloat(finalVal);
+            const total = mid + assignment + finalExam;
+            const grade = calculateGrade(total);
+
+            students.push({
+                studentId,
+                firstName,
+                fatherName,
+                gender,
+                mid,
+                assignment,
+                finalExam,
+                total,
+                grade
+            });
+
+            renderStudents();
+            this.reset();
+            clearErrors();
+        });
+    </script>
+</body>
+</html>
